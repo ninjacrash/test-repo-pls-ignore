@@ -31,17 +31,21 @@ func main() {
 func handleSql(w http.ResponseWriter, r *http.Request) {
   username := os.Getenv("db_user")
   password := os.Getenv("db_password")
-  db, err := sql.Open("postgres", "postgres://" + username + ":" + password + "@homelessdb.cmcvtt7pgaun.us-east-1.rds.amazonaws.com:5432")
+  db, err := sql.Open("postgres", "postgres://" + username + ":" + password + "@homelessdb.cmcvtt7pgaun.us-east-1.rds.amazonaws.com/homelessdb")
   if err != nil {
-    fmt.Printf("Failed to connect to the database")
+    fmt.Printf("Failed to connect to the database: " + err.Error())
     return
   }
-  rows, err := db.Query("select * from public")
+  rows, err := db.Query("select * from public.user")
   if err != nil {
-    fmt.Printf("Failed to query the database")
+    fmt.Printf("Failed to query the database: " + err.Error())
     return
   }
-  fmt.Printf("%s", rows)
+  defer rows.Close()
+  for rows.Next() {
+    fmt.Printf("%s", row)
+    // TODO: effort. we're switching to postgrest
+  }
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
