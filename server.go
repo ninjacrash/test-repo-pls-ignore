@@ -7,6 +7,8 @@ import (
   "log"
   "net/http"
   "os"
+  "database/sql"
+  _ "github.com/lib/pq"
 )
 
 func main() {
@@ -19,10 +21,27 @@ func main() {
 
   r.PathPrefix("/www/").Handler(http.StripPrefix("/www/", http.FileServer(http.Dir(getStaticDir()))))
   r.Path("/").HandlerFunc(handleIndex).Name("home")
+  r.Path("/api/").HandlerFunc(handleSql).Name("sql")
 
   http.Handle("/", r)
   fmt.Printf("server started on port %s\n", port)
   log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func handleSql(w http.ResponseWriter, r *http.Request) {
+  username := os.Getenv("db_user")
+  password := os.Getenv("db_password")
+  db, err := sql.Open("postgres", "postgres://" + username + ":" + password + "@homelessdb.cmcvtt7pgaun.us-east-1.rds.amazonaws.com:5432")
+  if err != nil {
+    fmt.Printf("Failed to connect to the database")
+    return
+  }
+  rows, err := db.Query("select * from public")
+  if err != nil {
+    fmt.Printf("Failed to query the database")
+    return
+  }
+  fmt.Printf("%s", rows)
 }
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
